@@ -1,10 +1,11 @@
-import { getGreeting } from "./apiManager";
+import { getGreeting, getListOfDogs } from "./apiManager";
 import { useEffect, useState } from "react";
 
 export default function Home() {
   const [greeting, setGreeting] = useState({
     message: "Not Connected to the API",
   });
+  const [dogs, setDogs] = useState([])
 
   useEffect(() => {
     getGreeting()
@@ -14,5 +15,23 @@ export default function Home() {
       });
   }, []);
 
-  return <p>{greeting.message}</p>;
+  useEffect(() => {
+    getListOfDogs().then(data => {
+      setDogs(data)
+    })
+
+  }, [])
+
+
+  return (
+   <div>
+    <div>
+      {dogs.map((dog) => {
+        return (<div>{dog.name}</div>)
+      })}
+    </div>
+   </div>
+  )
+
 }
+
