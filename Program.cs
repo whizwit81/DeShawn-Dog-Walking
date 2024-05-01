@@ -1,5 +1,6 @@
 using DeShawn.Models;
 using DeShawn.Models.DTOs;
+using System.Linq;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -73,8 +74,7 @@ List<Dogs> dogs = new List<Dogs>
     {
         Id = 1,
         Name = "Barkley",
-        CityId = 1,
-        WalkerId = 1
+        CityId = 1
     },
     new Dogs
     {
@@ -106,7 +106,7 @@ List<Dogs> dogs = new List<Dogs>
     },
      new Dogs
     {
-        Id = 5,
+        Id = 6,
         Name = "Comet",
         CityId = 5,
         WalkerId = 5
@@ -150,19 +150,39 @@ app.MapGet(
 );
 
 app.MapGet(
+    "/api/cities",
+    () =>
+    {
+        return cities.Select(c => new CitiesDTO
+        {
+            Id = c.Id,
+            Name = c.Name,
+        });
+    }
+);
+
+app.MapGet(
     "/api/dogs",
     () =>
     {
         foreach(Dogs dog in dogs)
         {
             dog.City = cities.FirstOrDefault(c => c.Id == dog.CityId);
+            dog.Walkers = walkers.FirstOrDefault(w => w.Id == dog.WalkerId);
         }
+        
         return dogs.Select(d => new DogsDTO
         {
             Id = d.Id,
             Name = d.Name,
             CityId = d.CityId,
             WalkerId = d.WalkerId,
+            Walkers = d.WalkerId == 0 ? null :
+            new WalkersDTO
+            {
+                Id = d.Walkers.Id,
+                Name = d.Walkers.Name
+            },
             City = new CitiesDTO
             {
                 Id = d.City.Id,
@@ -172,4 +192,49 @@ app.MapGet(
         });
     }
 );
+
+// need to iterate through dogs based on dogId and match to walkerID to display
+app.MapGet("/api/dogs/{id}", (int id) =>
+{
+    Dogs dog = dogs.FirstOrDefault(d => d.Id == id);
+    Walkers walker = walkers.FirstOrDefault(w => w.Id == dog.WalkerId);
+    Cities city = cities.FirstOrDefault(c => c.Id == dog.CityId);
+
+    DogsDTO dogDTO = new DogsDTO
+    {
+        Id = dog.Id,
+        Name = dog.Name,
+        CityId = dog.CityId,
+        WalkerId = dog.WalkerId,
+        City = new CitiesDTO
+        {
+            Id = city.Id,
+            Name = city.Name
+        },
+        Walkers = walker == null ? null : new WalkersDTO
+        {
+            Id = walker.Id,
+            Name = walker.Name,
+            DogId = walker.DogId
+        }
+    };
+
+    return Results.Ok(dogDTO);
+});
+
+app.MapPost("/api/addadog", (Dogs dog) =>
+{
+    dog.Id = dogs.Max(d => d.Id) + 1;
+    dogs.Add(dog);
+    
+    return Results.Created($"/api/dogs/{dog.Id}", new DogsDTO
+    {
+        Id = dog.Id,
+        Name = dog.Name,
+        CityId = dog.CityId,
+        WalkerId = dog.WalkerId
+    });
+});
+
+
 app.Run();
