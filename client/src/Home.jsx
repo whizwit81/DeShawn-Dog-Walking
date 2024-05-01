@@ -30,7 +30,15 @@ export default function Home() {
           <div key={dog.id}>
             <Link to={`/dogs/${dog.id}`}>{dog.name}</Link>
           </div>
+          
         ))}
+      </div>
+      <div className="btn-container">
+        <Link to="/addadog">
+          <button className="home-page-btn btn-secondary">
+            Add a Dog
+          </button>
+        </Link>
       </div>
     </div>
   );

@@ -13,3 +13,17 @@ export const getDogDetailsbyId = async (id) => {
   return res.json();
 };
 
+export const getListOfCities = async () => {
+  const res = await fetch("/api/cities");
+  return res.json()
+};
+
+export const addNewDog = (dog) => {
+  return fetch("/api/addadog", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(dog),
+  }).then((res) => res.json());
+};
